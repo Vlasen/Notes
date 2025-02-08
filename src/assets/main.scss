@@ -1,0 +1,91 @@
+@import './base.css';
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+h1{
+  width: 488px;
+  height: 208px;
+  font-weight: 900;
+  font-size: 104px;
+  line-height: 104px;
+  color: var(--color-white);
+}
+
+h2 {
+  width: 627px;
+  height: 72px;
+  font-weight: 600;
+  font-size: 48px;
+  line-height: 72px;
+  color: var(--color-white);
+}
+
+h3 {
+  width: 394px;
+  height: 96px;
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 48px;
+  color: var(--color-gray);
+}
+
+h4 {
+  width: 627px;
+  height: 32px;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 32px;
+  color: var(--color-white);
+}
+
+.text-normal {
+  width: 450.67px;
+  height: 32px;
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 32px;
+  color: var(--color-white);
+}
+
+.text-small{
+  width: 501px;
+  height: 27px;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 28px;
+  color: var(--color-white);
+}
+
+.text-small-bold {
+  width: 501px;
+  height: 27px;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 28px;
+  color: var(--color-white);
+}
+
+a {
+  @extend .text-small-bold;
+  width: 193px;
+  height: 28px;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 28px;
+  color: var(--color-green-light);
+}
+a:hover {
+  color: var(--color-white);
+}
+
+button {
+  background: var(--color-green-light) !important;
+  color: var(--color-white);
+  border: none;
+  cursor: pointer;
+}
+button:hover {
+  background: var(--color-green-middle) !important;
+}
+button:active {
+  background: var(--color-green-dark) !important;
+}
