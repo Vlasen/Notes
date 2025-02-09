@@ -89,3 +89,16 @@ button:hover {
 button:active {
   background: var(--color-green-dark) !important;
 }
+
+.circle-loading-wraper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgb(10, 31, 56, .5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}

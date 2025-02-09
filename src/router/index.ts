@@ -1,20 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import axios from 'axios'
-import { ref } from 'vue'
 import WelcomePage from '@/views/WelcomePage.vue';
 import UserPage from '@/views/UserPage.vue';
-
-
 
 const checkAuth = async () => {
   
   try {
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) return false;
-    
-    console.log(accessToken);
 
-    // localStorage.setItem('email', '');
     const response = await axios.get('https://dist.nd.ru/api/auth', {
       headers: { 
         'Accept': 'application/json',
@@ -30,7 +24,6 @@ const checkAuth = async () => {
     return false;
   }
 };
-
 
 const routes = [
   { 
@@ -52,6 +45,7 @@ router.beforeEach(async (to, from, next) => {
   const isAuthenticated = await checkAuth();
 
   if (to.path === '/' && isAuthenticated) {
+    sessionStorage.getItem('email');
     return next('/my-notes');
   }
 

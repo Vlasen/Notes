@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { reactive, ref, computed } from 'vue'
+import { reactive } from 'vue'
 import type { PropType  } from 'vue'
 import axios from 'axios'
 
 const props = defineProps({
   openLoginModal: {
-    type: Function as PropType<(event: MouseEvent) => void>,
+    type: Function as PropType<(event: MouseEvent | KeyboardEvent) => void>,
     required: true,
   },
   closeModal: {
-    type: Function as PropType<(event: MouseEvent) => void>,
+    type: Function as PropType<(event: MouseEvent | KeyboardEvent) => void>,
     required: true
   },
   getType: {
@@ -25,6 +25,7 @@ const props = defineProps({
 const state = reactive({
   isLoading: false,
   registrationError: '',
+  registrationStatus: '',
   inputData: [{
       label: 'Email',
       input: '',
@@ -50,6 +51,7 @@ const state = reactive({
 
 const validateInput = (inputData: typeof state.inputData): boolean => {
   let isValid = true;
+
   const passwordField = inputData.find((data: any) => data.label === 'Пароль');
   const confirmPasswordField = inputData.find((data: any) => data.label === 'Пароль еще раз');
 
@@ -60,23 +62,10 @@ const validateInput = (inputData: typeof state.inputData): boolean => {
 
   for (const data of inputData) {
     data.error = '';
-    if (data.label == 'Email') {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.input)) {
-        data.error = "Некорректный email";
-        isValid = false;
-      }
-    };
-
     if (!data.input) {
       data.error = 'Поле не может быть пустым';
       isValid = false;
-    } else if (passwordField.input.length < 4) {
-      passwordField.error = "Введите не менее 4 символов";
-      isValid = false;
-    } else if (!/[a-zA-Z]/.test(passwordField.input) || !/\d/.test(passwordField.input)) {
-      passwordField.error = "Пароль должен содержать хотя бы одну букву и цифру";
-      isValid = false;
-    };
+    } 
 
     if (passwordField.input && confirmPasswordField.input) {
       if (passwordField.input !== confirmPasswordField.input) {
@@ -88,26 +77,19 @@ const validateInput = (inputData: typeof state.inputData): boolean => {
   return isValid;
 };
 
-const registerUser = async (event: MouseEvent, inputData: any): Promise<void> => {
+const registeration = async (event: MouseEvent | KeyboardEvent, inputData: any): Promise<void> => {
   if (!validateInput(state.inputData)) return;
   
   state.isLoading = true;
   state.registrationError = '';
+  state.registrationStatus = '';
 
   const emailField = inputData.find((data: any) => data.label === 'Email');
   const passwordField = inputData.find((data: any) => data.label === 'Пароль');
   const confirmPasswordField = inputData.find((data: any) => data.label === 'Пароль еще раз');
-  
-  const response = await axios.head('https://dist.nd.ru/api/ping', {
-      headers: {
-        'Accept': 'application/json',
-      }
-    });
-    console.log(response)
-
 
   try {
-    const response = await axios.post('https://dist.nd.ru/api/reg', {
+    await axios.post('https://dist.nd.ru/api/reg', {
       email: emailField.input,
       password: passwordField.input,
       confirm_password: confirmPasswordField.input
@@ -118,21 +100,37 @@ const registerUser = async (event: MouseEvent, inputData: any): Promise<void> =>
       }
     });
 
-    console.log("Регистрация успешна", response.data);
-    props.openLoginModal(event);
+    state.registrationStatus = 'Вы зарегистрированы!';
+
+    setTimeout(() => {
+      props.openLoginModal(event);
+    }, 1000);
+    
   } catch (error: any) {
     console.error("Ошибка при регистрации:", error);
     if (error.message) {
       state.registrationError = error.message;
     };
+
     if (error.response.data.message) {
+      for (const message of error.response.data.message) {
+        if (message.includes('адрес')) {
+          const emailField = inputData.find((data: any) => data.label === 'Email');
+          emailField.error = message;
+        }
+        if (message.includes('Пароль')) {
+          const passwordField = inputData.find((data: any) => data.label === 'Пароль');
+          passwordField.error = message;
+        }
+      }
+    } 
+    if (error.status == 409) {
       state.registrationError = error.response.data.message;
-    } else {
-      state.registrationError = error.response.data.message[0];
     }
-    // if (error.status == 409) {
-    //   state.registrationError = 'Пользователь с таким e-mail уже зарегистрирован';
-    // }
+    if (error.status == 400) {
+      state.registrationError = '';
+    }
+    
   } finally {
     state.isLoading = false;
   }
@@ -141,8 +139,8 @@ const registerUser = async (event: MouseEvent, inputData: any): Promise<void> =>
 </script>
 
 <template>
-  <article class="modal-overlay">
-    <div class="modal-content">
+  <article class="modal-overlay" @mouseup="closeModal($event)">
+    <div class="modal-content" @mouseup.stop>
       <button class="close-btn" @click="props.closeModal($event)">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M1 1L17 17M17 1L1 17" stroke="white" stroke-width="2" stroke-linecap="round"/>
@@ -151,7 +149,7 @@ const registerUser = async (event: MouseEvent, inputData: any): Promise<void> =>
 
       <h2>Регистрация</h2>
 
-      <form>
+      <form @keyup.enter="registeration($event, state.inputData)">
         <div class="wrapper" v-for="data in state.inputData">
           <label class="text-small">{{ data.label }}</label>
           <div class="input-box">
@@ -194,17 +192,25 @@ const registerUser = async (event: MouseEvent, inputData: any): Promise<void> =>
             </label>
             <a href="#" @click="props.openLoginModal($event)">Войдите</a>
           </div>
-          <button class="login-btn" @click="registerUser($event, state.inputData)">
+          <button class="login-btn" @click="registeration($event, state.inputData)">
             <label class="text-normal">
               Зарегистрироваться
             </label>
           </button>
         </section>  
-        <div class="error-message" v-if="state.registrationError">
-          <label class="text-small">
-            {{ state.registrationError }}
-          </label> 
+        <div class="status-message"v-if="state.registrationError || state.registrationStatus">
+          <div class="error-message" v-if="state.registrationError">
+            <label class="text-small error-text">
+              {{ state.registrationError }}
+            </label> 
+          </div>
+          <div class="success-message" v-if="state.registrationStatus">
+            <label class="text-small success-text">
+              {{ state.registrationStatus }}
+            </label> 
+          </div>
         </div>
+
       </footer>
     </div>
   </article>
@@ -224,14 +230,13 @@ const registerUser = async (event: MouseEvent, inputData: any): Promise<void> =>
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10;
+  z-index: 1000;
 
   .modal-content {
     position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    width: 70%;
     height: auto;
     padding: 80px;
     gap: 40px;
@@ -419,7 +424,7 @@ const registerUser = async (event: MouseEvent, inputData: any): Promise<void> =>
           height: 56px;
           border-radius: 32px;
           @media (max-width: 360px) {
-            width: auto;
+            width: 100%;
             height: 56px;
             flex: none;
             order: 1;
@@ -431,23 +436,24 @@ const registerUser = async (event: MouseEvent, inputData: any): Promise<void> =>
           }
         }
       }
-      .error-message {
-        width: 100%;
-        height: auto;
-        padding: 8px 20px;
-        gap: 8px;
-        background: var(--color-red-dark-invalid);
-        border-radius: 24px;
-        text-align: left;
+      .status-message {
+        .error-message {
+          width: 100%;
+          height: auto;
+          padding: 8px 20px;
+          gap: 8px;
+          background: var(--color-red-dark-invalid);
+          border-radius: 24px;
+          text-align: left;
 
-        @media (max-width: 1000px) {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          text-align: center;
-        }
+          @media (max-width: 1000px) {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+          }
 
-          label {
+          .error-text {
             width: 580px;
             height: auto;
 
@@ -456,20 +462,36 @@ const registerUser = async (event: MouseEvent, inputData: any): Promise<void> =>
             line-height: 28px;
             color: var(--color-red-invalid);
           }
+        }
+        .success-message {
+          width: 100%;
+          height: auto;
+          padding: 8px 20px;
+          gap: 8px;
+          background: rgba(129, 148, 0, .3);
+          border-radius: 24px;
+          text-align: left;
+
+          @media (max-width: 1000px) {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+          }
+          .success-text {
+            width: 580px;
+            height: auto;
+
+            font-weight: 400;
+            font-size: 18px;
+            line-height: 28px;
+            color: var(--color-green-light);
+          }
+          
+          
+        }
       }
     }
   }
-}
-.circle-loading-wraper {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgb(10, 31, 56, .5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
 }
 </style>

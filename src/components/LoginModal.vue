@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive } from 'vue'
 import type { PropType  } from 'vue'
 import { useRouter } from 'vue-router';
 import axios from 'axios'
@@ -12,7 +12,7 @@ const props = defineProps({
     required: true
   },
   closeModal: {
-    type: Function as PropType<(event: MouseEvent) => void>,
+    type: Function as PropType<(event: MouseEvent | KeyboardEvent) => void>,
     required: true
   },
   getType: {
@@ -24,7 +24,7 @@ const props = defineProps({
     required: true,
   },
   loginUser: {
-    type: Function as PropType<(event: MouseEvent) => void>,
+    type: Function as PropType<(accessToken: string, email: string) => void>,
     required: true
   },
 
@@ -61,7 +61,7 @@ const validateInput = (inputData: typeof state.inputData): boolean => {
   return isValid;
 };
 
-const authUser = async (event: MouseEvent, inputData: any): Promise<void> => {
+const authUser = async (event: MouseEvent | KeyboardEvent, inputData: any): Promise<void> => {
   if (!validateInput(inputData)) return;
 
   state.isLoading = true;
@@ -81,44 +81,45 @@ const authUser = async (event: MouseEvent, inputData: any): Promise<void> => {
       }
     });
 
-    console.log("Авторизация успешна", response);
-    props.loginUser(event);
+    props.loginUser(response.data.accessToken, emailField.input);
     props.closeModal(event);
-    localStorage.setItem('accessToken', '');
-    localStorage.setItem('accessToken', response.data.accessToken);
-    console.log(localStorage.getItem('accessToken'))
 
     router.push('/my-notes');
   } catch (error: any) {
     console.error("Вход не выполнен", error);
+
     if (error.message) {
       state.loginError = error.message;
     };
+
     if (error.response.data.message) {
-      state.loginError = error.response.data.message;
-    } else {
-      state.loginError = error.message;
+      for (const message of error.response.data.message) {
+        if (message.includes('адрес')) {
+          const emailField = inputData.find((data: any) => data.label === 'Email');
+          emailField.error = message;
+        };
+        if (message.includes('Пароль')) {
+          const passwordField = inputData.find((data: any) => data.label === 'Пароль');
+          passwordField.error = message;
+        };
+      };
+    };
+    if (error.status == 400) {
+      state.loginError = '';
     }
-    
-  //   if (error.status == 404) {
-      
-  //   }
-  //   if (error.status == 400) {
-  //     if (error.response.data.message == 'Невалидный адрес электронной почты') {
-  //       emailField.error = error.response.data.message[0];
-  //     } else {
-  //       passwordField.error = error.response.data.message[0];
-  //     }
-  //   }
+    if (error.status == 404) {
+      state.loginError = error.response.data.message;
+    }
   } finally {
     state.isLoading = false;
   }
 };
+
 </script>
 
 <template>
-  <article class="modal-overlay">
-    <div class="modal-content">
+  <article class="modal-overlay" @mouseup="closeModal($event)">
+    <div class="modal-content" @mouseup.stop>
       <button class="close-btn" @click="closeModal($event)">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M1 1L17 17M17 1L1 17" stroke="white" stroke-width="2" stroke-linecap="round"/>
@@ -127,8 +128,8 @@ const authUser = async (event: MouseEvent, inputData: any): Promise<void> => {
 
       <h2>Вход в ваш аккаунт</h2>
 
-      <form v-for="data in state.inputData">
-        <div class="wrapper">
+      <form @keyup.enter="authUser($event, state.inputData)">
+        <div class="wrapper" v-for="data in state.inputData">
           <label class="text-small">{{ data.label }}</label>
           <div class="input-box">
             <input v-model="data.input"
@@ -170,7 +171,9 @@ const authUser = async (event: MouseEvent, inputData: any): Promise<void> => {
             </label>
             <a href="#" @click="openRegistrationModal($event)">Зарегистрируйтесь</a>
           </div>
-          <button class="login-btn" @click="authUser($event, state.inputData)">
+          <button class="login-btn" 
+            @click="authUser($event, state.inputData)"
+            >
             <label class="text-normal">
               Войти
             </label>
@@ -185,9 +188,7 @@ const authUser = async (event: MouseEvent, inputData: any): Promise<void> => {
       
     </div>
   </article>
-  <article class="circle-loading-wraper" v-if="state.isLoading">
-    <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 24 24"><path fill="rgba(177, 201, 9, 1)" d="M12 2A10 10 0 1 0 22 12A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8A8 8 0 0 1 12 20Z" opacity="0.5"/><path fill="rgba(177, 201, 9, 1)" d="M20 12h2A10 10 0 0 0 12 2V4A8 8 0 0 1 20 12Z"><animateTransform attributeName="transform" dur="1s" from="0 12 12" repeatCount="indefinite" to="360 12 12" type="rotate"/></path></svg>
-  </article>
+
 </template>
 
 <style scoped lang="scss">
@@ -201,7 +202,7 @@ const authUser = async (event: MouseEvent, inputData: any): Promise<void> => {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10;
+  z-index: 1000;
 
   .modal-content {
     position: relative;
@@ -209,7 +210,7 @@ const authUser = async (event: MouseEvent, inputData: any): Promise<void> => {
     flex-direction: column;
     justify-content: center;
     max-width: 780px;
-    width: 70%;
+    // width: 70%;
     height: auto;
     padding: 80px;
     gap: 40px;
@@ -219,10 +220,11 @@ const authUser = async (event: MouseEvent, inputData: any): Promise<void> => {
 
       @media (max-width: 1366px) {
         padding: 56px;
+        min-width: 580px;
       }
       @media (max-width: 768px) {
         width: 90%;
-        min-width: 440px;
+        // min-width: 440px;
       }
       @media (max-width: 360px) {
         position: fixed;
@@ -230,9 +232,7 @@ const authUser = async (event: MouseEvent, inputData: any): Promise<void> => {
         left: 4px;
         bottom: 4px;
         right: 4px;
-        width: auto;
-        min-width: 350px;
-        height: auto;
+        min-width: 342px;
         min-height: 580px;
         padding: 24px 16px;
         margin: 4px;
@@ -400,7 +400,7 @@ const authUser = async (event: MouseEvent, inputData: any): Promise<void> => {
           height: 56px;
           border-radius: 32px;
           @media (max-width: 360px) {
-            width: 320px;
+            width: 100%;
             height: 56px;
             flex: none;
             order: 1;
@@ -440,17 +440,5 @@ const authUser = async (event: MouseEvent, inputData: any): Promise<void> => {
       }
     }
   }
-}
-.circle-loading-wraper {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgb(10, 31, 56, .5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
 }
 </style>

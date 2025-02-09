@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 import Header from "@/components/Header.vue"
-
-const accessToken = sessionStorage.setItem('accessToken', '');
 </script>
 
 

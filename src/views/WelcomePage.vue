@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
-
 import MainPage from "@/components/MainPage.vue"
 
 const showAlert = ref(false);
@@ -34,7 +33,7 @@ onMounted(() => {
 <style lang="scss" scoped>
 .alert-wrapper {
   position: fixed;
-  top: 0;
+  top: 10px;
   left: 0;
   width: 100vw;
   height: 100vh;

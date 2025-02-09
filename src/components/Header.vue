@@ -1,22 +1,26 @@
 <script lang="ts" setup>
-import { reactive, computed, ref } from 'vue'
+import { reactive, computed, watch, ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios'
 import LoginModal from '../components/LoginModal.vue';
 import RegistrationModal from '../components/RegistrationModal.vue';
-import { useRouter } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute();
 
-const email = localStorage.getItem('email');
+const accessToken = ref(localStorage.getItem('accessToken'));
+const emailLocal = ref(localStorage.getItem('email'));
 
 const state = reactive({
+  isLoading: false,
   showLoginModal: false,
   showRegistrationModal: false,
   isAuthorized: false,
   isLogoutBoxActive: false,
+  email: '',
 });
 
-const openLoginModal = (event: MouseEvent) => {
+const openLoginModal = (event: MouseEvent | KeyboardEvent) => {
   state.showRegistrationModal = false
   state.showLoginModal = true
 };
@@ -24,10 +28,11 @@ const openRegistrationModal = (event: MouseEvent) => {
   state.showRegistrationModal = true
   state.showLoginModal = false
 };
-const closeModal = (event: MouseEvent) => {
+const closeModal = (event: MouseEvent | KeyboardEvent) => {
   state.showLoginModal = false
   state.showRegistrationModal = false
 };
+
 
 const getType = (data: any) => computed<string>(() =>  
     data.label.includes('Пароль') ? (data.isVisibleEye ? 'text' : 'password') : 'email'
@@ -36,35 +41,49 @@ const togglePassword = (inputData: any) => {
   inputData.isVisibleEye = !inputData.isVisibleEye;
 };
 
+
+const showLogoutBtn = (event: MouseEvent) => {
+  state.isLogoutBoxActive = !state.isLogoutBoxActive;
+};
+
+
+const loginUser = (token: string, email: string) => {
+  localStorage.removeItem('accessToken');
+  localStorage.setItem('accessToken', token);
+  accessToken.value = localStorage.getItem('accessToken');
+  localStorage.removeItem('email');
+  localStorage.setItem('email', email);
+  emailLocal.value = localStorage.getItem('email');
+};
+
 const logout = async (event: MouseEvent) => {
-  const accessToken = localStorage.getItem('accessToken');
+  state.isLoading = true;
   try {
-    if (!accessToken) return false;
+    if (!accessToken.value) return false;
 
     const response = await axios.delete('https://dist.nd.ru/api/auth', {
       headers: {
         'Accept': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
+        'Authorization': `Bearer ${accessToken.value}`
       }
     });
     console.log("Токен отозван", response.data)
-    state.isAuthorized = false;
-    localStorage.setItem('accessToken', '');
-    console.log(state.isAuthorized);
+
+    localStorage.removeItem('accessToken');
+    accessToken.value = localStorage.getItem('accessToken');
 
     router.push('/');
   } catch (error) {
     console.error("Выйти не удалось", error)
+  } finally {
+    state.isLoading = false;
+    state.isLogoutBoxActive = false;
   }
 };
 
-const showLogoutBox = (event: MouseEvent) => {
-  state.isLogoutBoxActive = !state.isLogoutBoxActive;
-};
-const loginUser = (event: MouseEvent) => {
-  state.isAuthorized = true;
-};
-
+watch(accessToken, (newValue) => {
+  state.isAuthorized = !!newValue;
+});
 </script>
 
 <template>
@@ -84,16 +103,16 @@ const loginUser = (event: MouseEvent) => {
         <path d="M89.9761 12.3792C92.6214 12.3792 94.6801 13.1577 96.1521 14.7146C97.6241 16.2502 98.3601 18.479 98.3601 21.4009V35.1574H93.176V21.5609C93.176 19.9826 92.76 18.7989 91.928 18.0098C91.1174 17.1993 90.0401 16.7941 88.6961 16.7941C87.2241 16.7941 86.0507 17.2206 85.176 18.0738C84.3014 18.9056 83.8641 20.1746 83.8641 21.8808V35.1574H78.6801V21.5609C78.6801 19.9826 78.2961 18.7989 77.5281 18.0098C76.7601 17.1993 75.7147 16.7941 74.3921 16.7941C72.9414 16.7941 71.7787 17.2206 70.9041 18.0738C70.0294 18.9056 69.592 20.1746 69.592 21.8808V35.1574H64.4081V12.7631H69.4321V15.5144C70.1147 14.512 71.0214 13.7442 72.1521 13.211C73.2827 12.6565 74.5841 12.3792 76.0561 12.3792C77.5921 12.3792 78.9361 12.6671 80.0881 13.243C81.2401 13.7975 82.1254 14.608 82.744 15.6744C83.512 14.608 84.5147 13.7975 85.7521 13.243C87.0107 12.6671 88.4187 12.3792 89.9761 12.3792Z" fill="#B1C909"/>
       </svg>
 
-      <button v-if="!state.isAuthorized" type="button" @click="openLoginModal($event)">
+      <button v-if="!accessToken && route.path === '/'" type="button" @click="openLoginModal($event)">
         <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M6.3079 4.54487C5.90926 4.92711 5.89596 5.56013 6.2782 5.95877C6.66044 6.35741 7.29347 6.3707 7.6921 5.98846L6.3079 4.54487ZM7.6921 28.0115C7.29347 27.6293 6.66044 27.6426 6.2782 28.0412C5.89596 28.4399 5.90926 29.0729 6.3079 29.4551L7.6921 28.0115ZM1 16C0.447715 16 0 16.4477 0 17C0 17.5523 0.447715 18 1 18V16ZM23 17L23.7071 17.7071C24.0976 17.3166 24.0976 16.6834 23.7071 16.2929L23 17ZM16.2929 22.2929C15.9024 22.6834 15.9024 23.3166 16.2929 23.7071C16.6834 24.0976 17.3166 24.0976 17.7071 23.7071L16.2929 22.2929ZM17.7071 10.2929C17.3166 9.90237 16.6834 9.90237 16.2929 10.2929C15.9024 10.6834 15.9024 11.3166 16.2929 11.7071L17.7071 10.2929ZM32 17C32 25.3158 25.4872 32 17.5227 32V34C26.6539 34 34 26.3573 34 17H32ZM17.5227 2C25.4872 2 32 8.68416 32 17H34C34 7.64273 26.6539 0 17.5227 0V2ZM7.6921 5.98846C10.2781 3.50887 13.7316 2 17.5227 2V0C13.1867 0 9.2448 1.72879 6.3079 4.54487L7.6921 5.98846ZM17.5227 32C13.7316 32 10.2781 30.4911 7.6921 28.0115L6.3079 29.4551C9.2448 32.2712 13.1867 34 17.5227 34V32ZM1 18H23V16H1V18ZM22.2929 16.2929L16.2929 22.2929L17.7071 23.7071L23.7071 17.7071L22.2929 16.2929ZM23.7071 16.2929L17.7071 10.2929L16.2929 11.7071L22.2929 17.7071L23.7071 16.2929Z" fill="white"/>
         </svg>
         <label>Вход</label>
       </button>
-      <div class="user-data" v-if="state.isAuthorized">
-        <label class="text-small">{{ email }}</label>
+      <div class="user-data" v-if="accessToken && route.path === '/my-notes'">
+        <label class="text-small email">{{ emailLocal }}</label>
 
-        <svg class="user-logo"  @click="showLogoutBox($event)"
+        <svg class="user-logo"  @click="showLogoutBtn($event)"
           width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="28" cy="28" r="28" fill="#1B2F46"/>
           <circle cx="28" cy="20" r="5" stroke="white" stroke-width="2"/>
@@ -123,6 +142,9 @@ const loginUser = (event: MouseEvent) => {
         :togglePassword="togglePassword"/>
     </section>
   </article>
+  <article class="circle-loading-wraper" v-if="state.isLoading">
+    <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 24 24"><path fill="rgba(177, 201, 9, 1)" d="M12 2A10 10 0 1 0 22 12A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8A8 8 0 0 1 12 20Z" opacity="0.5"/><path fill="rgba(177, 201, 9, 1)" d="M20 12h2A10 10 0 0 0 12 2V4A8 8 0 0 1 20 12Z"><animateTransform attributeName="transform" dur="1s" from="0 12 12" repeatCount="indefinite" to="360 12 12" type="rotate"/></path></svg>
+  </article>
 </template>
 
 <style scoped lang="scss">
@@ -142,18 +164,21 @@ const loginUser = (event: MouseEvent) => {
     @media (max-width: 1920px) or (min-width: 1920px) {
       padding: 40px 8vw;
       max-height: 136px;
+      min-width: 1400px;
     }
     @media (max-width: 1366px) {
-    padding: 20px 7vw;
-    max-height: 96px;
+      padding: 20px 7vw;
+      max-height: 96px;
+      min-width: 570px;
     }
     @media (max-width: 768px) {
-    padding: 20px 6vw;
-    max-height: 96px;
+      padding: 20px 6vw;
+      max-height: 96px;
+      min-width: 200px;
     }
     @media (max-width: 360px) {
-    padding: 20px;
-    max-height: 96px;
+      padding: 20px;
+      max-height: 96px;
     }
 
     .logo {
@@ -199,26 +224,23 @@ const loginUser = (event: MouseEvent) => {
       padding: 0;
       margin-left: auto;
       gap: 12px;
-      z-index: 1000;
+  
+      .email {
+        width: 100%;
+        @media (max-width: 600px) {
+          display: none;
+        }
+      }
+      .user-logo {
+        position: relative;
+        width: 56px;
+        height: 56px;
+        right: 0;
+        top: 0px;
+        cursor: pointer;
+        flex-shrink: 0;
 
-      label {
-        width: auto;
-      }
-      .user-logo {
-        position: relative;
-        width: 56px;
-        height: 56px;
-        right: 0;
-        top: 0px;
-        cursor: pointer;
-      }
-      .user-logo {
-        position: relative;
-        width: 56px;
-        height: 56px;
-        right: 0;
-        top: 0px;
-        cursor: pointer;
+        
       }
       .logout-box {
         position: fixed;
@@ -231,6 +253,7 @@ const loginUser = (event: MouseEvent) => {
         gap: 16px;
         background: var(--color-dark-middle);
         box-shadow: 0 0 46px rgba(0, 0, 0, 0.6);
+        z-index: 1000;
         .logout-wrapper {
           cursor: pointer;
           label {

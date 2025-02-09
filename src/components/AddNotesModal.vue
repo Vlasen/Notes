@@ -3,6 +3,8 @@ import type { PropType  } from 'vue'
 import { reactive, ref } from 'vue'
 import axios from 'axios'
 
+const emit = defineEmits(['getNotes']);
+
 const props = defineProps({
   closeAddNotesModal: {
     type: Function as PropType<(event: MouseEvent) => void>,
@@ -12,7 +14,7 @@ const props = defineProps({
 
 const state = reactive({
   isLoading: false,
-  notesеTitle: {
+  notesTitle: {
     title: '',
     error: '',
   },
@@ -20,37 +22,14 @@ const state = reactive({
     content: '',
     error: '',
   },
-
 })
-const validateInput = (notesеTitle: typeof state.notesеTitle, notesContent: typeof state.notesContent): boolean => {
-  let isValid = true;
-    
-    if (notesеTitle.title.length > 100) {
-      notesеTitle.error = 'Превышено максимальное количество символов';
-      isValid = false;
-    }
-    
-    if (notesContent.content) {
-      if (notesContent.content.length > 500) {
-        notesContent.error = 'Превышено максимальное количество символов';
-        isValid = false;
-      } 
-    } else {
-      notesContent.error = 'Поле не может быть пустым';
-      isValid = false;
-    }
-
-  return isValid;
-};
 
 const addNotes = async (event: MouseEvent, title: string, content: string) => {
-  state.notesеTitle.error = '';
-  state.notesContent.error = '';
-  if (!validateInput(state.notesеTitle, state.notesContent)) return;
-
   state.isLoading = true;
+  state.notesTitle.error = '';
+  state.notesContent.error = '';
+  const accessToken = ref(localStorage.getItem('accessToken'));
   
-
   try {
     const response = await axios.post('https://dist.nd.ru/api/notes', {
       title: title,
@@ -58,40 +37,26 @@ const addNotes = async (event: MouseEvent, title: string, content: string) => {
     }, {
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken.value}`
       }
     });
 
     console.log("Заметка добавлена", response);
+    emit('getNotes');
     props.closeAddNotesModal(event);
   } catch (error: any) {
     console.error("Ошибка при добавлении:", error);
-  } finally {
-    state.isLoading = false;
-  }
-};
 
-
-const chackAuth = async (event: MouseEvent, title: string, content: string) => {
-  state.notesеTitle.error = '';
-  state.notesContent.error = '';
-  if (!validateInput(state.notesеTitle, state.notesContent)) return;
-
-  state.isLoading = true;
-  
-
-  try {
-    const response = await axios.post('https://dist.nd.ru/api/auth', {
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer ${}'
-      }
-    });
-
-    console.log("Заметка добавлена", response);
-    props.closeAddNotesModal(event);
-  } catch (error: any) {
-    console.error("Ошибка при добавлении:", error);
+    if (error.response.data.message) {
+      for (const message of error.response.data.message) {
+        if (message.includes('Заголовок')) {
+          state.notesTitle.error = message;
+        } else if (message.includes('Содержимое')) {
+          state.notesContent.error = message;
+        };
+      };
+    };
   } finally {
     state.isLoading = false;
   }
@@ -99,8 +64,8 @@ const chackAuth = async (event: MouseEvent, title: string, content: string) => {
 </script>
 
 <template>
-  <article class="modal-overlay">
-    <section class="modal-content">
+  <article class="modal-overlay" @mouseup="props.closeAddNotesModal($event)">
+    <section class="modal-content" @mouseup.stop>
       <button class="close-btn" @click="props.closeAddNotesModal($event)">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M1 1L17 17M17 1L1 17" stroke="white" stroke-width="2" stroke-linecap="round"/>
@@ -113,7 +78,7 @@ const chackAuth = async (event: MouseEvent, title: string, content: string) => {
         <div class="wrapper">
           <label class="text-small" for="title">Название заметки</label>
           <div class="input-box">
-            <input v-model="state.notesеTitle.title"
+            <input v-model="state.notesTitle.title"
               type="text"
               id="title"
               placeholder="Название заметки"
@@ -122,11 +87,15 @@ const chackAuth = async (event: MouseEvent, title: string, content: string) => {
           </div>
 
           <div class="info-error">
-            <div class="input-invalid" v-if="state.notesеTitle.error">
-              {{ state.notesеTitle.error }}
+            <div class="input-invalid" v-if="state.notesTitle.error">
+              {{ state.notesTitle.error }}
             </div>
-            <div class="symbols-number">
-              <label class="text-small">{{ state.notesеTitle.title.length }}/100</label>
+            <div class="symbols-number" >
+              <label class="text-small" 
+                :class="{'input-invalid': state.notesTitle.title.length > 64}"
+              >
+                {{ state.notesTitle.title.length }}/64
+              </label>
             </div>
           </div>
         </div>
@@ -146,7 +115,11 @@ const chackAuth = async (event: MouseEvent, title: string, content: string) => {
               {{ state.notesContent.error }}
             </div>
             <div class="symbols-number">
-              <label class="text-small">{{ state.notesContent.content.length }}/500</label>
+              <label class="text-small"
+                :class="{'input-invalid': state.notesContent.content.length > 255}"
+              >
+                {{ state.notesContent.content.length }}/255
+              </label>
             </div>
           </div>
         </div>
@@ -156,7 +129,7 @@ const chackAuth = async (event: MouseEvent, title: string, content: string) => {
       <footer>
         <section>
           <button class="add-notes-btn"
-            @click="addNotes($event, state.notesеTitle.title, state.notesContent.content)">
+            @click="addNotes($event, state.notesTitle.title, state.notesContent.content)">
             <label class="text-normal">
               Добавить
             </label>
@@ -182,7 +155,7 @@ const chackAuth = async (event: MouseEvent, title: string, content: string) => {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10;
+  z-index: 1000;
 
   .modal-content {
     position: relative;
@@ -330,18 +303,21 @@ const chackAuth = async (event: MouseEvent, title: string, content: string) => {
         }
 
         .info-error {
+          position: relative;
           display: flex;
           flex-direction: row;
           justify-content: space-between;
+          align-items: center;
 
           .input-invalid {
             padding: 0 24px;
             font-weight: 400;
             font-size: 18px;
             line-height: 28px;
-            color: var(--color-red-invalid);
+            color: var(--color-red-invalid) !important;
           }
           .symbols-number {
+            margin-left: auto;
             text-align: right;
           }
         }
@@ -391,17 +367,5 @@ const chackAuth = async (event: MouseEvent, title: string, content: string) => {
       }
     }
   }
-}
-.circle-loading-wraper {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgb(10, 31, 56, .5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
 }
 </style>
