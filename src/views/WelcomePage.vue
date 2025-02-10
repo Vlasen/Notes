@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
-import MainPage from "@/components/MainPage.vue"
+import MainPage from "../components/MainPage.vue"
 
 const showAlert = ref(false);
 const alertMessage = ref('');
@@ -88,7 +88,6 @@ onMounted(() => {
     }
   }
 
-  /* Анимация исчезновения */
   @keyframes slideOut {
     from {
       opacity: 1;
@@ -99,8 +98,6 @@ onMounted(() => {
       transform: translateY(40px);
     }
   }
-
-  /* Добавляем класс для скрытия (можно использовать в JS) */
   .custom-alert.hide {
     animation: slideOut 0.4s ease-out forwards;
   }

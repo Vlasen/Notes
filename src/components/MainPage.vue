@@ -4,7 +4,7 @@
       <h1>Мои заметки</h1>
       <h3>Не забывай о важном, храни его в облаке.</h3>
     </section>
-    <img alt="" class="welcome-image" src="@/assets/welcomeImage.png"/>
+    <img alt="" class="welcome-image" src="../assets/welcomeImage.png"/>
   </div>
 </template>
 
@@ -21,13 +21,13 @@
       gap: 83px;
       padding: 0px 160px;
     }
-    @media (min-width: 1366px) {
+    @media (min-width: 1330px) {
       height: calc(100vh - 136px);
       min-height: 630px;
       padding: 0px 80px;
       width: auto;
     }
-    @media (max-width: 1366px) {
+    @media (max-width: 1330px) {
       height: calc(100vh - 96px);
       display: flex;
       flex-direction: column;
@@ -62,12 +62,12 @@
         height: 392px;
         flex: none;
       }
-      @media (min-width: 1366px) {
+      @media (min-width: 1330px) {
         width: 578.67px;
         height: 392px;
         gap: 20px;
       }
-      @media (max-width: 1366px){
+      @media (max-width: 1330px){
         position: relative;
         display: flex;
         flex-direction: column;
@@ -108,15 +108,17 @@
     .welcome-image {
       position: relative;
       @media (min-width: 1920px) {
-        margin: 0 auto 0 auto;
+        margin: 0 auto;
         height: 100%;
       }
-      @media (min-width: 1366px) {
+      @media (min-width: 1330px) {
         width: auto;
         height: 100%;
+        margin-top:auto;
+        max-height: 750px;
       }
-      @media (max-width: 1366px) {
-        min-width: 200px;
+      @media (max-width: 1330px) {
+        min-width: 300px;
         min-height: 287px;
         margin-bottom: auto; 
       }

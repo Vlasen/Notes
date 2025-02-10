@@ -224,8 +224,8 @@ const registeration = async (event: MouseEvent | KeyboardEvent, inputData: any):
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background: rgb(10, 31, 56, .7);
   display: flex;
   justify-content: center;
@@ -249,7 +249,11 @@ const registeration = async (event: MouseEvent | KeyboardEvent, inputData: any):
       min-width: 580px;
     }
     @media (max-width: 768px) {
+      min-width: 350px;
+    }
+    @media (max-width: 500px) {
       width: 90%;
+      padding: 24px 24px;
     }
     @media (max-width: 360px) {
       position: fixed;
@@ -257,11 +261,14 @@ const registeration = async (event: MouseEvent | KeyboardEvent, inputData: any):
       left: 4px;
       bottom: 4px;
       right: 4px;
+      height: 100vh;
       min-width: 342px;
-      min-height: 700px;
+      min-height: 620px;
+      overflow-y: auto;
       padding: 24px 16px;
       margin: 4px;
       gap: 28px;
+      -webkit-overflow-scrolling: touch;
     }
 
     .close-btn {
@@ -284,7 +291,7 @@ const registeration = async (event: MouseEvent | KeyboardEvent, inputData: any):
         min-width: 300px;
         height: auto;
       }
-      @media (max-width: 360px) {
+      @media (max-width: 500px) {
         font-weight: 600;
         font-size: 32px;
         line-height: 36px;
@@ -356,6 +363,9 @@ const registeration = async (event: MouseEvent | KeyboardEvent, inputData: any):
           font-size: 18px;
           line-height: 28px;
           color: var(--color-red-invalid);
+          @media (max-width: 500px) {
+            font-size: 16px;
+          }
         }
       }
     }
@@ -371,7 +381,7 @@ const registeration = async (event: MouseEvent | KeyboardEvent, inputData: any):
         height: auto;
         gap: 12px;
         
-        @media (max-width: 360px) {
+        @media (max-width: 600px) {
           flex-direction: column;
           gap: 12px;
         }
@@ -387,7 +397,7 @@ const registeration = async (event: MouseEvent | KeyboardEvent, inputData: any):
           @media (max-width: 768px) {
             flex-direction: row;
           }
-          @media (max-width: 360px) {
+          @media (max-width: 600px) {
             flex-direction: row;
             justify-content: center;
             flex-wrap: nowrap;
@@ -423,7 +433,7 @@ const registeration = async (event: MouseEvent | KeyboardEvent, inputData: any):
           width: 267px;
           height: 56px;
           border-radius: 32px;
-          @media (max-width: 360px) {
+          @media (max-width: 600px) {
             width: 100%;
             height: 56px;
             flex: none;

@@ -84,7 +84,7 @@ const authUser = async (event: MouseEvent | KeyboardEvent, inputData: any): Prom
     props.loginUser(response.data.accessToken, emailField.input);
     props.closeModal(event);
 
-    router.push('/my-notes');
+    router.push('/Notes/my-notes');
   } catch (error: any) {
     console.error("Вход не выполнен", error);
 
@@ -196,8 +196,8 @@ const authUser = async (event: MouseEvent | KeyboardEvent, inputData: any): Prom
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background: rgb(10, 31, 56, .7);
   display: flex;
   justify-content: center;
@@ -210,7 +210,6 @@ const authUser = async (event: MouseEvent | KeyboardEvent, inputData: any): Prom
     flex-direction: column;
     justify-content: center;
     max-width: 780px;
-    // width: 70%;
     height: auto;
     padding: 80px;
     gap: 40px;
@@ -224,7 +223,17 @@ const authUser = async (event: MouseEvent | KeyboardEvent, inputData: any): Prom
       }
       @media (max-width: 768px) {
         width: 90%;
-        // min-width: 440px;
+        min-width: 350px;
+      }
+      @media (max-width: 560px) {
+        width: 90%;
+        padding: 56px 24px;
+
+        min-width: 342px;
+        min-height: 600px;
+        padding: 24px 16px;
+        margin: 4px;
+        gap: 28px;
       }
       @media (max-width: 360px) {
         position: fixed;
@@ -233,7 +242,7 @@ const authUser = async (event: MouseEvent | KeyboardEvent, inputData: any): Prom
         bottom: 4px;
         right: 4px;
         min-width: 342px;
-        min-height: 580px;
+        min-height: 600px;
         padding: 24px 16px;
         margin: 4px;
         gap: 28px;
@@ -259,10 +268,13 @@ const authUser = async (event: MouseEvent | KeyboardEvent, inputData: any): Prom
         min-width: 300px;
         height: auto;
       }
-      @media (max-width: 360px) {
-        font-weight: 600;
+      @media (max-width: 500px) {
+        max-width: 200px;
         font-size: 32px;
         line-height: 36px;
+      }
+      @media (max-width: 360px) {
+        font-weight: 600;
       }
 
     }
@@ -330,6 +342,9 @@ const authUser = async (event: MouseEvent | KeyboardEvent, inputData: any): Prom
           font-size: 18px;
           line-height: 28px;
           color: var(--color-red-invalid);
+          @media (max-width: 360px) {
+            font-size: 16px;
+          }
         }
       }
     }

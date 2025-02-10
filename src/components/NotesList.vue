@@ -46,7 +46,7 @@ const emit = defineEmits<{
 .notes-list {
   display: grid;
   grid-template-rows: repeat(auto-fill, 1fr);
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   align-items: start;
   padding: 40px 160px;
   gap: 40px;
@@ -54,7 +54,7 @@ const emit = defineEmits<{
   @media (max-width: 1366px) {
     gap: 20px;
     padding: 40px 80px;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   }
   @media (max-width: 768px) {
     padding: 40px;
@@ -69,8 +69,8 @@ const emit = defineEmits<{
     flex-direction: column;
     justify-content: flex-start;
 
-    min-width: 320px;
-    max-width: 500px;
+    min-width: 400px;
+    max-width: 506px;
     height: auto;
     min-height: 240px;
     box-shadow: 0px 15px 15px -10px rgba(0, 0, 0, 0.4);
@@ -79,11 +79,11 @@ const emit = defineEmits<{
     clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 40px, 100% 100%, 0 100%);
 
     @media (max-width: 1366px) {
-      min-width: 260px;
-      max-width: 388.6px;
+      min-width: 300px;
+      max-width: 368.6px;
     }
     @media (max-width: 768px) {
-      width: 100%;
+
       min-width: 220px;
       max-width: 688px;
     }

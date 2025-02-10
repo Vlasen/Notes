@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { reactive, onMounted } from 'vue'
 import axios from 'axios'
-import AddNotesModal from '@/components/AddNotesModal.vue';
-import NotesList from '@/components/NotesList.vue';
+import AddNotesModal from '../components/AddNotesModal.vue';
+import NotesList from '../components/NotesList.vue';
 
 interface Note {
   id: number,

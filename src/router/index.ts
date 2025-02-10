@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import axios from 'axios'
-import WelcomePage from '@/views/WelcomePage.vue';
-import UserPage from '@/views/UserPage.vue';
+import WelcomePage from '../views/WelcomePage.vue';
+import UserPage from '../views/UserPage.vue';
 
 const checkAuth = async () => {
   
@@ -27,11 +27,11 @@ const checkAuth = async () => {
 
 const routes = [
   { 
-    path: '/', 
+    path: '/Notes/', 
     component: WelcomePage,
   },
   { 
-    path: '/my-notes', 
+    path: '/Notes/my-notes', 
     component: UserPage,
   }
 ];
@@ -44,16 +44,20 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const isAuthenticated = await checkAuth();
 
-  if (to.path === '/' && isAuthenticated) {
+  if (to.path === '/Notes/' && isAuthenticated) {
     sessionStorage.getItem('email');
-    return next('/my-notes');
+    return next('/Notes/my-notes');
   }
 
-  if (to.path === '/my-notes' && !isAuthenticated) {
+  if (to.path === '/Notes/my-notes' && !isAuthenticated) {
     sessionStorage.setItem('alertMessage', 'Вы должны авторизоваться!');
-    return next('/');
+    return next('/Notes/');
   }
 
+  if (to.path === '/my-notes') {
+    return next('/Notes/my-notes');
+  }
   next();
 });
+
 export default router;

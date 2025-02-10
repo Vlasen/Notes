@@ -149,8 +149,8 @@ const addNotes = async (event: MouseEvent, title: string, content: string) => {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background: rgb(10, 31, 56, .7);
   display: flex;
   justify-content: center;
@@ -187,7 +187,7 @@ const addNotes = async (event: MouseEvent, title: string, content: string) => {
         width: auto;
         min-width: 300px;
         height: auto;
-        min-height: 760px;
+        min-height: 625px;
         padding: 24px 16px;
         margin: 4px;
         gap: 28px;
@@ -245,6 +245,11 @@ const addNotes = async (event: MouseEvent, title: string, content: string) => {
         }
         .input-box {
           position: relative;
+          gap: 24px;
+
+          @media (max-width: 360px) {
+            gap: 16px;
+          }
         }
         input {
           padding: 0 58px 0 28px;
@@ -285,6 +290,9 @@ const addNotes = async (event: MouseEvent, title: string, content: string) => {
           font-size: 18px;
           line-height: 28px;
           resize: none;
+          @media (max-width: 1366px) {
+            height: 168px;
+          }
         }
         textarea::placeholder {
           font-family: 'Montserrat';
@@ -315,6 +323,9 @@ const addNotes = async (event: MouseEvent, title: string, content: string) => {
             font-size: 18px;
             line-height: 28px;
             color: var(--color-red-invalid) !important;
+            @media (max-width: 360px) {
+              font-size: 16px;
+            }
           }
           .symbols-number {
             margin-left: auto;
