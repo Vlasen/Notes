@@ -89,7 +89,7 @@ watch(accessToken, (newValue) => {
 
 <template>
   <article>
-    <section class="header-wrapper">
+    <section class="header-wrapper" :class="{'my-notes-header' : route.path === '/Notes/my-notes'}">
       <svg class="logo" width="219" height="50" viewBox="0 0 219 50" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M15.3185 23.6627C14.2516 23.9485 13.6184 25.0449 13.9043 26.1116C14.1902 27.1782 15.2869 27.8113 16.3538 27.5254L36.5964 22.1028C37.6634 21.817 38.2965 20.7206 38.0107 19.654C37.7248 18.5873 36.6281 17.9543 35.5612 18.2401L15.3185 23.6627Z" fill="#B1C909"/>
         <path d="M15.6301 32.5508C15.3442 31.4841 15.9774 30.3877 17.0443 30.1019L37.287 24.6793C38.3539 24.3935 39.4506 25.0265 39.7365 26.0932C40.0224 27.1598 39.3892 28.2562 38.3223 28.542L18.0796 33.9647C17.0127 34.2505 15.916 33.6175 15.6301 32.5508Z" fill="#B1C909"/>
@@ -175,6 +175,11 @@ watch(accessToken, (newValue) => {
     }
     @media (max-width: 768px) {
       padding: 20px 6vw;
+      max-height: 96px;
+      min-width: 450px;
+    }
+    @media (max-width: 500px) {
+      padding: 20px;
       max-height: 96px;
       min-width: 550px;
     }
@@ -278,6 +283,13 @@ watch(accessToken, (newValue) => {
           background: var(--color-dark-middle);
         }
       }
+    }
+  }
+  .my-notes-header {
+    @media (max-width: 500px) {
+      padding: 20px;
+      max-height: 96px;
+      min-width: 250px;
     }
   }
 
